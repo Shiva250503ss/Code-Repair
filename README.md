@@ -43,7 +43,7 @@ flowchart TB
     end
 
     subgraph D["Parts D/E -- Fine-tune + Benchmark (notebook written, pending Colab run)"]
-        NB["notebook/code_repair_colab.ipynb<br/>Qwen2.5-Coder-3B-Instruct<br/>LoRA vs QLoRA vs DoRA, then DPO<br/>pass@1 / pass@3 via the sandbox"]
+        NB["notebook/code_repair_colab.ipynb<br/>Qwen2.5-Coder-1.5B-Instruct<br/>LoRA vs QLoRA vs DoRA, then DPO<br/>pass@1 / pass@3 via the sandbox"]
         GGUF["GGUF q4_k_m export + Modelfile"]
         DS --> NB
         HE --> NB
@@ -80,7 +80,7 @@ detail):
 > (bug types, function topics, signature shapes)"; all three merge into
 > "Reciprocal Rank Fusion" then "cross-encoder rerank". Group 4 "Fine-tuning
 > and Benchmark (Colab, pending)": dataset and HumanEval feed a notebook box
-> "Qwen2.5-Coder-3B: LoRA vs QLoRA vs DoRA, then DPO; pass@1/pass@3 measured
+> "Qwen2.5-Coder-1.5B: LoRA vs QLoRA vs DoRA, then DPO; pass@1/pass@3 measured
 > by executing fixes in the sandbox", which outputs "GGUF q4_k_m + Modelfile
 > for Ollama". Group 5 "Web UI": a box "FastAPI + static frontend: run code,
 > generate fix, diff view, verify fix" connected to "Ollama endpoint

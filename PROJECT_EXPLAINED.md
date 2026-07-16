@@ -309,19 +309,22 @@ tested once, trusted everywhere -- the same file that built the training
 data also grades the benchmark. Two implementations could quietly drift
 apart and grade differently.
 
-### Base model choice: Qwen2.5-Coder-3B-Instruct
+### Base model choice: Qwen2.5-Coder-1.5B-Instruct
 
 **What it does.** A markdown cell states the model size and why.
 
 **Say this out loud.**
 > "I originally sized this for the 7B model -- it's the largest Qwen2.5-Coder
 > that lets LoRA, QLoRA, and DoRA all run on one L4 in bf16, roughly 15 GB
-> of weights. I switched to 3B for this run specifically because I had an
-> interview deadline and 3B trains and generates in roughly a third of the
-> wall-clock time on the same GPU -- it's a time trade-off I made
-> deliberately, not a hardware limit. The pipeline -- data, sandbox
-> verification, RAG, DPO, benchmarking -- is identical either way; only the
-> base model size changed, and switching back to 7B is a one-line edit."
+> of weights. For this run I used 1.5B, for two reasons: it trains the
+> whole pipeline -- LoRA, QLoRA, DoRA, DPO, and the five-arm benchmark --
+> in under two hours instead of most of a day, and it's the exact same size
+> as the base model my UI already runs through Ollama for the live demo.
+> That means the benchmark's 'base' row and what you'd see in the demo are
+> literally the same weights, so any improvement I measure is attributable
+> to the fine-tuning pipeline, not to using a bigger model. The pipeline
+> itself -- data, sandbox verification, RAG, DPO, benchmarking -- is
+> identical no matter the size; only `MODEL_ID` changes."
 
 ### LoRA / QLoRA / DoRA training cells
 

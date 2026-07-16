@@ -80,25 +80,25 @@ if starting fresh: `python -m venv .venv` then step 1.
    **GPU: L4** and **High-RAM**. (Colab Pro required.)
 
 3. **Run cells top to bottom, in order.** Realistic wall-clock with the
-   current default model, **Qwen2.5-Coder-3B-Instruct** (estimates -- the
-   notebook prints the real measured times; roughly a third of 7B's time,
-   which is why 3B was chosen against a tight deadline -- see the rationale
-   cell in the notebook and `INTERVIEW_PREP.md`):
+   current default model, **Qwen2.5-Coder-1.5B-Instruct** (estimates -- the
+   notebook prints the real measured times; chosen both for speed and
+   because it's the same size as the base model already wired into the UI
+   demo -- see the rationale cell in the notebook and `INTERVIEW_PREP.md`):
    - Environment gate + installs: ~5 min
    - Data loading: ~2 min
-   - LoRA SFT: ~15-25 min
-   - QLoRA SFT: ~20-30 min
-   - DoRA SFT: ~20-35 min
-   - DPO (on best adapter): ~10-20 min
-   - Benchmark, 7 arms x 150 items x 4 generations: ~1-1.5 h
+   - LoRA SFT: ~6-12 min
+   - QLoRA SFT: ~8-15 min
+   - DoRA SFT: ~8-15 min
+   - DPO (on best adapter): ~5-10 min
+   - Benchmark, 7 arms x 150 items x 4 generations: ~30-50 min
    - GGUF convert + q4_k_m quantize: ~10-15 min
-   Total: roughly 3-4 hours of L4 time. Each adapter is backed up to
+   Total: roughly 1.5-2 hours of L4 time. Each adapter is backed up to
    Drive the moment its training finishes, so a disconnect never loses a
    completed stage. If still tight on time, lower `N_EVAL` (cell with
    `N_EVAL = 150`) to 60-80 and `DPO_SUBSET` (cell with `DPO_SUBSET = 2000`)
    to 800-1000 -- both cut wall-clock further with no code changes needed.
-   Switching back to 7B later is one line: `MODEL_ID` in the "shared
-   training machinery" cell.
+   Switching to a larger model later (3B or 7B) is one line: `MODEL_ID` in
+   the "shared training machinery" cell.
 
 4. **Bring the model home** (~10 min): download
    `code-repair-qwen-q4_k_m.gguf` and `Modelfile` from Drive into one

@@ -192,9 +192,11 @@ open that in a second tab if you get a question you want backup for.
 8. **`notebook/code_repair_colab.ipynb`** -- "Written and validated, meant
    for a GPU I run separately on Colab: LoRA vs QLoRA vs DoRA, then DPO,
    then a benchmark that executes every generated fix in this same
-   sandbox. Currently using Qwen2.5-Coder-3B to fit the time I had before
-   this interview -- 7B was my original target and the pipeline doesn't
-   change either way, only the base model size."
+   sandbox. Currently using Qwen2.5-Coder-1.5B -- the same size as the base
+   model my UI demo already runs, so the benchmark's baseline and the demo
+   are the same weights, and the whole pipeline trains in under two hours.
+   7B was my original target for the largest model all three PEFT methods
+   fit on one L4; the pipeline itself doesn't change, only `MODEL_ID`."
 
 ---
 
