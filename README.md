@@ -121,7 +121,7 @@ out loud (see `INTERVIEW_PREP.md` for the matching script):
 | `ui/server.py`, `ui/static/` | Web interface; every verdict comes from a real sandbox run |
 | `ui/config.py` | `OLLAMA_MODEL` -- the one-line model swap |
 | `ui/test_e2e.py` | Scripted end-to-end check of the whole UI loop |
-| `PROJECT_EXPLAINED.md` | Plain-English walkthrough of every file (interview prep) |
+| `PROJECT_EXPLAINED.md` | Plain-English walkthrough of every file, including the notebook (interview prep) |
 | `INTERVIEW_PREP.md` | Presentation script: explain -> diagram -> live demo -> code |
 | `RUNBOOK.md` | Exact commands to run everything, with time estimates |
 
