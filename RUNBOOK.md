@@ -79,6 +79,21 @@ if starting fresh: `python -m venv .venv` then step 1.
    colab.research.google.com. Runtime > Change runtime type >
    **GPU: L4** and **High-RAM**. (Colab Pro required.)
 
+   **There is a mandatory restart in the dependencies step.** Cell 2a
+   installs `transformers`/`peft`/`trl`/`bitsandbytes`/`accelerate` and
+   pins torch to whatever Colab already shipped, so the install can't
+   silently downgrade it. After it finishes, **Runtime > Restart session**
+   (not "Disconnect and delete runtime" -- Restart session keeps the same
+   GPU allocation and is fast), then re-run cell 1 (GPU check) and cell 2b
+   (import verification, no reinstall). Skipping the restart is the one
+   thing that reliably breaks this step -- a `pip install` that touches
+   torch-adjacent packages while torch is already imported in the same
+   Python process leaves stale compiled extensions loaded, which surfaces
+   as `ImportError: cannot import name 'skip_code' from
+   torch._C._dynamo.eval_frame'` or similar. If you hit that error, it
+   means the restart was skipped or a stray cell reinstalled something
+   after cell 2b ran -- restart and re-run cells 1 then 2b, nothing else.
+
 3. **Run cells top to bottom, in order.** Realistic wall-clock with the
    current default model, **Qwen2.5-Coder-1.5B-Instruct** (estimates -- the
    notebook prints the real measured times; chosen both for speed and
