@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+rag/index/
+data/out/*.jsonl
+!data/out/report.md
+!data/out/eval_set_report.md

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Repair Assistant</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Code Repair Assistant</h1>
+    <span class="subtitle">sandbox-verified Python repair</span>
+  </div>
+  <div id="health" class="health">
+    <span class="health-item">sandbox: <b id="h-sandbox">checking</b></span>
+    <span class="health-item">model: <b id="h-model">checking</b></span>
+    <span class="health-item">retrieval: <b id="h-retrieval">checking</b></span>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>1. Input</h2>
+    <label for="problem">Problem description (optional)</label>
+    <textarea id="problem" rows="3"
+      placeholder="Write a function to ..."></textarea>
+    <label for="code">Broken Python code</label>
+    <textarea id="code" class="code" rows="14" spellcheck="false"
+      placeholder="def my_function(...):&#10;    ..."></textarea>
+    <label for="tests">Test cases (one assert per line)</label>
+    <textarea id="tests" class="code" rows="5" spellcheck="false"
+      placeholder="assert my_function(2) == 4"></textarea>
+    <div class="row">
+      <button id="btn-run">Run in sandbox</button>
+      <label class="checkbox">
+        <input type="checkbox" id="use-retrieval" checked>
+        Use retrieval context (RAG + graph)
+      </label>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-sandbox" hidden>
+    <h2>2. Sandbox execution <span id="run-status" class="badge"></span></h2>
+    <div id="run-meta" class="meta"></div>
+    <ul id="run-tests" class="testlist"></ul>
+    <pre id="run-error" class="code-block error-block" hidden></pre>
+    <pre id="run-stdout" class="code-block" hidden></pre>
+    <div class="row">
+      <button id="btn-fix" disabled>Generate fix</button>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-fix" hidden>
+    <h2>3. Proposed fix <span id="fix-meta" class="meta-inline"></span></h2>
+    <div id="fix-retrieved" class="retrieved" hidden></div>
+    <div class="tabs">
+      <button class="tab active" data-view="diff">Diff</button>
+      <button class="tab" data-view="full">Full code</button>
+    </div>
+    <pre id="fix-diff" class="code-block diff-block"></pre>
+    <pre id="fix-code" class="code-block" hidden></pre>
+    <div class="row">
+      <button id="btn-verify">Verify fix in sandbox</button>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-verify" hidden>
+    <h2>4. Verification <span id="verify-status" class="badge"></span></h2>
+    <div id="verify-meta" class="meta"></div>
+    <ul id="verify-tests" class="testlist"></ul>
+    <pre id="verify-error" class="code-block error-block" hidden></pre>
+  </section>
+</main>
+
+<footer>
+  All pass/fail results come from real sandboxed execution of the code
+  against the tests above. Model and retrieval settings: ui/config.py
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
