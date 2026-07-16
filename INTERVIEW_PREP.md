@@ -56,32 +56,45 @@ out.
 
 ## Part 2 -- Show the architecture diagram
 
-Use the **simplified 5-box diagram** for this part (see `README.md` ->
-"Simplified version for live presentation" for the exact Eraser.io prompt).
-Generate it once at eraser.io, export it as an image, and either paste it
-into the README or just have the tab open to share your screen.
+The diagram is already made -- it's `docs/architecture.png`, shown in
+`README.md` under "Architecture." Have that image open (or the README
+rendered on GitHub) to share your screen. Five groups, left to right:
 
-Talking points, left to right, one sentence per box:
+1. **Execution Sandbox** (top left). "`executor.py` -- subprocess
+   isolation, a timeout, a memory cap, no network, and it can only write
+   files inside one scratch folder. Below it, the validation suite: 11
+   known cases I tested it against before trusting it with anything."
+2. **Dataset Pipeline** (top middle). "974 real MBPP problems go through
+   AST bug injection -- five bug families, one change at a time. Every
+   variant runs through that same sandbox box on the left, and only
+   variants that genuinely fail become training data: `dataset.jsonl`,
+   3,760 pairs with real captured tracebacks, plus `dpo_pairs.jsonl` for
+   preference tuning. HumanEval sits to the side, untouched by training --
+   467 held-out evaluation items."
+3. **Retrieval** (bottom left). "Dense vectors, BM25 keyword search, and a
+   knowledge graph of bug types and function shapes all feed into
+   Reciprocal Rank Fusion, then a cross-encoder reranks the result. This
+   is what finds a similar past repair before the model even generates a
+   fix."
+4. **Fine-tuning and Benchmark** (bottom middle, marked pending). "Qwen2.5-
+   Coder-1.5B, compared across LoRA, QLoRA, and DoRA, then DPO on top of
+   whichever wins. pass@1 and pass@3 are measured by executing every
+   generated fix through that same sandbox again -- not judged by the
+   model itself. This box needs a GPU I run separately on Colab."
+5. **Web UI** (right). "FastAPI and a static frontend -- paste code, run
+   it, generate a fix, see the diff, verify the fix. It talks to an Ollama
+   endpoint that's one config value, so swapping in the fine-tuned model
+   later is a one-line change."
 
-1. **Real Data (MBPP + HumanEval).** "Everything starts from real,
-   published coding problems -- nothing here is made up."
-2. **Sandbox.** "Before I trust any code -- broken or fixed -- I run it in an
-   isolated subprocess and capture the real result: pass, fail, or crash,
-   with the real error."
-3. **Bug-Injected Dataset.** "I take a correct solution, inject one small
-   bug into its syntax tree, and keep the pair only if the sandbox proves
-   the bug actually breaks it. 3,760 pairs this way."
-4. **Retrieval.** "Before generating a fix, the system looks up similar past
-   repairs -- combining keyword search, semantic search, and a knowledge
-   graph of bug types and function shapes."
-5. **Fine-Tuned Model + UI.** "The model proposes a fix; the same sandbox
-   from box 2 verifies it live, in the browser."
+Then point at the arrows and tie it together:
 
-Point at the small dashed box under box 5 and say:
-
-> "This is the loop that matters: the sandbox is not just for building the
-> dataset, it is the same code reused to verify the model's output at the
-> end. One trusted execution engine, used everywhere."
+> "Notice the sandbox box has arrows going to almost everywhere else --
+> dataset building, retrieval evaluation, benchmarking, and the live UI
+> all call the exact same execution engine. That's deliberate: one trusted
+> way to check 'does this code actually work,' reused everywhere instead
+> of reimplemented four times. The dashed arrow on the right is the one
+> piece that's still pending -- once the Colab run finishes, the exported
+> model plugs into the same UI you're about to see, no rebuild."
 
 If they ask for more detail, that is when you switch to the **full
 technical diagram** in `README.md` and go subgraph by subgraph (A through
