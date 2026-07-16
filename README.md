@@ -43,7 +43,7 @@ flowchart TB
     end
 
     subgraph D["Parts D/E -- Fine-tune + Benchmark (notebook written, pending Colab run)"]
-        NB["notebook/code_repair_colab.ipynb<br/>Qwen2.5-Coder-7B-Instruct<br/>LoRA vs QLoRA vs DoRA, then DPO<br/>pass@1 / pass@3 via the sandbox"]
+        NB["notebook/code_repair_colab.ipynb<br/>Qwen2.5-Coder-3B-Instruct<br/>LoRA vs QLoRA vs DoRA, then DPO<br/>pass@1 / pass@3 via the sandbox"]
         GGUF["GGUF q4_k_m export + Modelfile"]
         DS --> NB
         HE --> NB
@@ -62,7 +62,9 @@ flowchart TB
 
 ## Eraser.io diagram prompt
 
-Paste this into Eraser.io's AI diagram feature for the same picture:
+Paste this into Eraser.io's AI diagram feature for the same picture (full
+technical version -- good for the README and for questions that probe
+detail):
 
 > Draw a system architecture diagram titled "Code Repair Assistant" with five
 > groups. Group 1 "Execution Sandbox": a box "executor.py: subprocess
@@ -78,13 +80,28 @@ Paste this into Eraser.io's AI diagram feature for the same picture:
 > (bug types, function topics, signature shapes)"; all three merge into
 > "Reciprocal Rank Fusion" then "cross-encoder rerank". Group 4 "Fine-tuning
 > and Benchmark (Colab, pending)": dataset and HumanEval feed a notebook box
-> "Qwen2.5-Coder-7B: LoRA vs QLoRA vs DoRA, then DPO; pass@1/pass@3 measured
+> "Qwen2.5-Coder-3B: LoRA vs QLoRA vs DoRA, then DPO; pass@1/pass@3 measured
 > by executing fixes in the sandbox", which outputs "GGUF q4_k_m + Modelfile
 > for Ollama". Group 5 "Web UI": a box "FastAPI + static frontend: run code,
 > generate fix, diff view, verify fix" connected to "Ollama endpoint
 > (configurable model)" and to the sandbox; the rerank output feeds the UI
 > as repair context; the GGUF export connects to Ollama with a dashed
 > "after Colab run" arrow.
+
+### Simplified version for live presentation
+
+Five boxes are a lot to narrate from memory under interview pressure. Use
+this shorter prompt for a second, cleaner diagram to actually talk through
+out loud (see `INTERVIEW_PREP.md` for the matching script):
+
+> Draw a simple left-to-right architecture diagram with five boxes connected
+> by arrows: (1) "Real Data -- MBPP + HumanEval", (2) "Sandbox -- runs code
+> safely, captures real errors", (3) "Bug-Injected Dataset -- 3,760 verified
+> broken/fixed pairs", (4) "Retrieval -- hybrid search + knowledge graph
+> finds similar past fixes", (5) "Fine-Tuned Model -- Qwen2.5-Coder, tested
+> in a web UI". Add a small dashed box below box 5 labeled "verified by
+> re-running the fix in the sandbox, feeding back into box 2". Keep labels
+> short, use a clean minimal style, no clutter.
 
 ## Repository layout
 
@@ -105,6 +122,7 @@ Paste this into Eraser.io's AI diagram feature for the same picture:
 | `ui/config.py` | `OLLAMA_MODEL` -- the one-line model swap |
 | `ui/test_e2e.py` | Scripted end-to-end check of the whole UI loop |
 | `PROJECT_EXPLAINED.md` | Plain-English walkthrough of every file (interview prep) |
+| `INTERVIEW_PREP.md` | Presentation script: explain -> diagram -> live demo -> code |
 | `RUNBOOK.md` | Exact commands to run everything, with time estimates |
 
 ## Status

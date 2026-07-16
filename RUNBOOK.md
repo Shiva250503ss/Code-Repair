@@ -79,20 +79,26 @@ if starting fresh: `python -m venv .venv` then step 1.
    colab.research.google.com. Runtime > Change runtime type >
    **GPU: L4** and **High-RAM**. (Colab Pro required.)
 
-3. **Run cells top to bottom, in order.** Realistic wall-clock at default
-   settings (estimates -- the notebook prints the real measured times):
+3. **Run cells top to bottom, in order.** Realistic wall-clock with the
+   current default model, **Qwen2.5-Coder-3B-Instruct** (estimates -- the
+   notebook prints the real measured times; roughly a third of 7B's time,
+   which is why 3B was chosen against a tight deadline -- see the rationale
+   cell in the notebook and `INTERVIEW_PREP.md`):
    - Environment gate + installs: ~5 min
    - Data loading: ~2 min
-   - LoRA SFT: ~45-90 min
-   - QLoRA SFT: ~60-100 min
-   - DoRA SFT: ~60-110 min
-   - DPO (on best adapter): ~30-60 min
-   - Benchmark, 7 arms x 150 items x 4 generations: ~2.5-4 h
-   - GGUF convert + q4_k_m quantize: ~20-30 min
-   Total: roughly a full day of L4 time. Each adapter is backed up to
+   - LoRA SFT: ~15-25 min
+   - QLoRA SFT: ~20-30 min
+   - DoRA SFT: ~20-35 min
+   - DPO (on best adapter): ~10-20 min
+   - Benchmark, 7 arms x 150 items x 4 generations: ~1-1.5 h
+   - GGUF convert + q4_k_m quantize: ~10-15 min
+   Total: roughly 3-4 hours of L4 time. Each adapter is backed up to
    Drive the moment its training finishes, so a disconnect never loses a
-   completed stage. For a fast first pass set `NUM_EPOCHS = 1` and
-   `N_EVAL = 50`.
+   completed stage. If still tight on time, lower `N_EVAL` (cell with
+   `N_EVAL = 150`) to 60-80 and `DPO_SUBSET` (cell with `DPO_SUBSET = 2000`)
+   to 800-1000 -- both cut wall-clock further with no code changes needed.
+   Switching back to 7B later is one line: `MODEL_ID` in the "shared
+   training machinery" cell.
 
 4. **Bring the model home** (~10 min): download
    `code-repair-qwen-q4_k_m.gguf` and `Modelfile` from Drive into one
