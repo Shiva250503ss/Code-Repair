@@ -81,8 +81,37 @@ Measured, not estimated:
   signal on its own is weak and adds no measurable lift once hybrid
   search and reranking are already in place -- full numbers in
   `rag/eval_results.md`.
-- **Fine-tuning and benchmark:** implemented in
-  `notebook/code_repair_colab.ipynb`; results depend on the Colab GPU run.
+- **Fine-tuning** (Qwen2.5-Coder-1.5B, single L4 GPU):
+
+  | Method | eval_loss | train time | peak VRAM |
+  |---|---|---|---|
+  | LoRA | 0.0053 | 23.5 min | 12.78 GB |
+  | QLoRA | 0.0069 | 36.4 min | 11.03 GB |
+  | DoRA | 0.0056 | 71.0 min | 12.79 GB |
+
+  LoRA had the lowest eval_loss and was carried forward into DPO
+  (train_loss 0.1496, 15.2 min).
+- **Benchmark** (150 held-out HumanEval items, pass@1 / pass@3, every fix
+  executed through the sandbox):
+
+  | Arm | pass@1 | pass@3 | RAG context |
+  |---|---|---|---|
+  | base | 0.687 | 0.787 | no |
+  | LoRA | 0.933 | 0.967 | no |
+  | QLoRA | 0.927 | 0.947 | no |
+  | DoRA | 0.933 | 0.940 | no |
+  | DPO (on LoRA) | 0.500 | 0.587 | no |
+  | base + RAG | 0.693 | 0.780 | yes |
+  | LoRA + RAG | 0.887 | 0.907 | yes |
+
+  All three fine-tuning methods roughly doubled pass@1 over the base
+  model. Two results worth stating plainly rather than hiding: DPO on top
+  of the best LoRA adapter made results substantially worse in this run
+  (0.933 -> 0.500), and adding retrieval context also reduced the
+  fine-tuned LoRA model's pass@1 (0.933 -> 0.887) even though it helped
+  the base model marginally. The exported model is the plain LoRA
+  adapter, selected automatically by measured pass@1, not the regressed
+  DPO variant.
 
 ## Repository structure
 
@@ -116,4 +145,5 @@ uvicorn ui.server:app --port 8000      # launch the web interface
 ```
 
 Fine-tuning and benchmarking are run separately on a GPU via
-`notebook/code_repair_colab.ipynb`.
+`notebook/code_repair_colab.ipynb`, which produces the quantized adapter
+served by the web interface.
