@@ -1,7 +1,7 @@
 """UI server configuration.
 
 To swap in the fine-tuned model later, change OLLAMA_MODEL below (after
-registering the GGUF export with `ollama create`, see RUNBOOK.md). Nothing
+registering the GGUF export with `ollama create -f Modelfile`). Nothing
 else needs to change.
 """
 
