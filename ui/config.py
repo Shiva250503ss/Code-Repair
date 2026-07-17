@@ -7,10 +7,10 @@ else needs to change.
 
 OLLAMA_URL = "http://localhost:11434"
 
-# The one-line model swap. Currently the base model used to verify the UI
-# end to end; replace with e.g. "code-repair-qwen" once the fine-tuned
-# adapter from the Colab notebook is exported and registered.
-OLLAMA_MODEL = "qwen2.5-coder:1.5b"
+# The one-line model swap. Points at the fine-tuned adapter (LoRA,
+# quantized to GGUF) registered locally with Ollama; set back to
+# "qwen2.5-coder:1.5b" to compare against the base model.
+OLLAMA_MODEL = "code-repair-qwen"
 
 GENERATION_TIMEOUT_S = 180
 GENERATION_OPTIONS = {"temperature": 0.2, "num_predict": 1024}

@@ -5,3 +5,9 @@ rag/index/
 data/out/*.jsonl
 !data/out/report.md
 !data/out/eval_set_report.md
+
+# Local model artifacts (GGUF exports, Ollama Modelfiles) -- these are
+# large binaries produced by running the Colab notebook locally; they
+# don't belong in git history.
+*.gguf
+Modelfile
