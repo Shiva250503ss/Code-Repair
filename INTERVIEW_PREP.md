@@ -58,47 +58,123 @@ out.
 
 The diagram is already made -- it's `docs/architecture.png`, shown in
 `README.md` under "Architecture." Have that image open (or the README
-rendered on GitHub) to share your screen. Five groups, left to right:
+rendered on GitHub) to share your screen. Walk it in this order, pointing
+at each box as you go. Every technical term is defined right where it
+first comes up, so you never have to backtrack.
 
-1. **Execution Sandbox** (top left). "`executor.py` -- subprocess
-   isolation, a timeout, a memory cap, no network, and it can only write
-   files inside one scratch folder. Below it, the validation suite: 11
-   known cases I tested it against before trusting it with anything."
-2. **Dataset Pipeline** (top middle). "974 real MBPP problems go through
-   AST bug injection -- five bug families, one change at a time. Every
-   variant runs through that same sandbox box on the left, and only
-   variants that genuinely fail become training data: `dataset.jsonl`,
-   3,760 pairs with real captured tracebacks, plus `dpo_pairs.jsonl` for
-   preference tuning. HumanEval sits to the side, untouched by training --
-   467 held-out evaluation items."
-3. **Retrieval** (bottom left). "Dense vectors, BM25 keyword search, and a
-   knowledge graph of bug types and function shapes all feed into
-   Reciprocal Rank Fusion, then a cross-encoder reranks the result. This
-   is what finds a similar past repair before the model even generates a
-   fix."
-4. **Fine-tuning and Benchmark** (bottom middle, marked pending). "Qwen2.5-
-   Coder-1.5B, compared across LoRA, QLoRA, and DoRA, then DPO on top of
-   whichever wins. pass@1 and pass@3 are measured by executing every
-   generated fix through that same sandbox again -- not judged by the
-   model itself. This box needs a GPU I run separately on Colab."
-5. **Web UI** (right). "FastAPI and a static frontend -- paste code, run
-   it, generate a fix, see the diff, verify the fix. It talks to an Ollama
-   endpoint that's one config value, so swapping in the fine-tuned model
-   later is a one-line change."
+**1. Point at the title.**
 
-Then point at the arrows and tie it together:
+> "This is my Code Repair Assistant -- real bugs, real fixes, verified in
+> a sandbox."
 
-> "Notice the sandbox box has arrows going to almost everywhere else --
-> dataset building, retrieval evaluation, benchmarking, and the live UI
-> all call the exact same execution engine. That's deliberate: one trusted
-> way to check 'does this code actually work,' reused everywhere instead
-> of reimplemented four times. The dashed arrow on the right is the one
-> piece that's still pending -- once the Colab run finishes, the exported
-> model plugs into the same UI you're about to see, no rebuild."
+**2. Point at the orange box -- Execution Sandbox.**
 
-If they ask for more detail, that is when you switch to the **full
-technical diagram** in `README.md` and go subgraph by subgraph (A through
-F) -- it matches the five parts from your 2-minute explanation exactly.
+> "I start here because everything else depends on it. This is
+> `executor.py`. A sandbox means a safe, isolated place to run code you
+> don't fully trust yet -- like testing something risky in a separate room
+> instead of at your own desk. It uses subprocess isolation -- every piece
+> of code runs in its own separate running program, so if it crashes it
+> can't take down anything else. It has a timeout -- a hard time limit, so
+> code stuck in an infinite loop gets killed automatically. It has a
+> memory cap -- a hard limit on RAM use, so a runaway program can't eat all
+> the machine's memory. It has no network access, and it only allows
+> scratch-dir-only writes -- it can only save files into one throwaway
+> folder, nowhere else. Below it, the validation suite -- 11 known cases
+> where I already know the correct answer in advance, like 'an infinite
+> loop should time out.' I tested the sandbox against all 11 before
+> trusting it with anything real."
+
+**3. Point at the blue box -- Dataset Pipeline.**
+
+> "Follow the arrow down into the sandbox. I start with MBPP -- a real,
+> publicly available set of 974 small Python problems, each with a correct
+> solution and real tests. For each one I do AST bug injection. AST stands
+> for Abstract Syntax Tree -- how a computer represents code as a
+> structured tree instead of plain text, so editing at that level keeps
+> the change precise and the code valid. I inject one of 5 bug families:
+> off-by-one, a number wrong by exactly one; wrong operator, like plus
+> swapped for minus; wrong comparison, like less-than swapped for
+> less-than-or-equal; wrong variable, a different variable that still
+> exists in scope; and missing edge case, deleting a special-case check.
+> Every broken version runs through the sandbox below, and I only keep it
+> if the sandbox proves it genuinely fails. That gives me `dataset.jsonl`
+> -- JSONL just means each line is one independent example -- 3,760
+> verified-failing pairs, each with the real captured traceback, the
+> actual error Python produced. I also build `dpo_pairs.jsonl`, 3,752
+> preference pairs -- a correct answer paired with a plausible-but-wrong
+> one, for a training step called DPO later."
+
+**4. Point at HumanEval, off to the side.**
+
+> "This box, HumanEval -- another real public dataset -- is kept separate
+> on purpose: 467 held-out eval items, set aside only for final testing,
+> never touched during training. It's not connected to `dataset.jsonl` at
+> all -- that's how I guarantee no leakage."
+
+**5. Point at the purple box -- Retrieval.**
+
+> "Follow the arrow down again -- Retrieval reads that same
+> `dataset.jsonl`. Three methods run in parallel. Qdrant dense vectors
+> using MiniLM embeddings -- an embedding turns text into a list of
+> numbers capturing its meaning, so similar-meaning texts get similar
+> numbers even with different words; MiniLM is the small model that
+> creates those numbers; Qdrant stores and searches them. BM25 sparse
+> search -- classic keyword matching, good at exact-word matches a
+> meaning-based search might miss. A knowledge graph -- connecting each
+> example to its bug type and its function's shape, so I can search 'a
+> similar bug in a similarly-shaped function,' not just similar words. All
+> three merge with Reciprocal Rank Fusion -- combining ranked lists using
+> just their rank position, first, second, third, not raw scores. Then a
+> cross-encoder rerank double-checks the merged shortlist -- it reads the
+> query and each candidate together, slower but more careful, so it only
+> runs on the narrowed-down list. The result leaves along this arrow
+> labeled repair context."
+
+**6. Point at the green box -- Fine-tuning and Benchmark (marked pending).**
+
+> "That repair context feeds in here, with `dataset.jsonl`,
+> `dpo_pairs.jsonl`, and HumanEval. This fine-tunes Qwen2.5-Coder-1.5B, a
+> real open-source coding model, 1.5 billion parameters. I compare three
+> lightweight methods: LoRA, which adds a small trainable add-on instead of
+> retraining the whole model, much cheaper; QLoRA, the same idea but the
+> base model is compressed to 4-bit precision first to save memory; and
+> DoRA, a newer variant that splits the update into direction and
+> magnitude, sometimes learning better. Whichever wins, I run DPO --
+> Direct Preference Optimization -- on top of it, using those preference
+> pairs, teaching 'this answer is better than that one,' not just 'here's
+> a right answer.' I grade all of it with pass@1 -- one attempt, does it
+> pass the real tests -- and pass@3 -- three attempts, does at least one
+> pass -- both measured by sandbox execution, actually running the code
+> again, never guessed. This box is marked pending because it needs a GPU
+> I run separately on Colab. Below it, the export: GGUF, a file format for
+> running models efficiently on a normal computer; q4_k_m, a compression
+> setting shrinking the model to about a quarter of its size; and a
+> Modelfile, a small config file telling Ollama how to load it."
+
+**7. Point at the pink box -- Web UI.**
+
+> "This is where a person actually uses it. FastAPI is the Python tool
+> behind the web server. The static frontend is the actual webpage -- run
+> code, generate fix, diff view, verify fix. It talks to an Ollama
+> endpoint -- Ollama runs models on your own machine instead of the cloud,
+> endpoint just means the connection point my program calls -- and it's a
+> configurable model, one setting in a file, not hardcoded. Now this long
+> arrow across the top, labeled verify fix, connects straight from the
+> sandbox to the UI, skipping everything in between -- verifying a fix
+> live doesn't need the dataset or retrieval machinery, just that same
+> `executor.py`, directly."
+
+**8. Point at the dashed arrow.**
+
+> "Last thing -- this arrow is dashed, not solid, from the GGUF export up
+> to Ollama, labeled after Colab run. Every other line here is solid
+> because it's built and working today. This is the only dashed one -- the
+> one piece still waiting on that GPU run."
+
+**9. Close.**
+
+> "So tracing the solid lines only is exactly what's real right now. The
+> one dashed line is my honest answer to 'what's left.'"
 
 ---
 
